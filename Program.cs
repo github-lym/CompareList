@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace CompareList
 {
@@ -11,16 +12,27 @@ namespace CompareList
         static string assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         static void Main(string[] args)
         {
-            Console.WriteLine("請輸入增加時間(分):");
-            int addTime;
-            bool parsedSuccessfully = int.TryParse(Console.ReadLine(), out addTime);
+            Console.WriteLine("請輸入增加時間(日(空格)時(空格)分):");
+            //int addTime = 0;
+            int addDays, addHours, addMins;
+
+            //bool parsedSuccessfully = int.TryParse(Console.ReadLine(), out addTime);
+            string input = Console.ReadLine();
+            bool parsedSuccessfully = Regex.IsMatch(input, @"\d+\s\d+\s\d+");
 
             while (parsedSuccessfully == false)
             {
-                Console.WriteLine("請輸入數字!");
-                Console.WriteLine("請輸入增加時間(分):");
-                parsedSuccessfully = int.TryParse(Console.ReadLine(), out addTime);
+                Console.WriteLine("格式不符");
+                Console.WriteLine("請輸入增加時間(日(空格)時(空格)分):");
+                input = Console.ReadLine();
+                //parsedSuccessfully = int.TryParse(Console.ReadLine(), out addTime);
+                parsedSuccessfully = Regex.IsMatch(input, @"\d+\s\d+\s\d+");
             }
+
+            string[] addTime = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            addDays = int.Parse(addTime[0]);
+            addHours = int.Parse(addTime[1]);
+            addMins = int.Parse(addTime[2]);
 
             string compareList = Path.Combine(assemblyPath, "CompareList");
             if (!Directory.Exists(compareList))
@@ -68,7 +80,7 @@ namespace CompareList
                     Directory.CreateDirectory(newCompareList);
 
                 DateTime oTime = files.OrderBy(o => o.LastWriteTime).Last().LastWriteTime;   //基礎時間
-                DateTime nTime = oTime.AddMinutes(addTime);
+                DateTime nTime = oTime.AddDays(addDays).AddHours(addHours).AddMinutes(addMins);
                 Random rnd = new Random();
                 //複製至另一資料夾並改變修改時間
                 for (int i = 0; i < files.Length; i++)
